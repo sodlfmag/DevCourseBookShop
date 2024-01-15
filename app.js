@@ -16,6 +16,6 @@ const categoryRouter = require('./routes/category');
 app.use('/users', userRouter);
 app.use('/books', bookRouter);
 app.use('/category', categoryRouter);
-// app.use('/likes', likeRouter);
+app.use('/likes', likeRouter);
 // app.use('/carts', cartRouter);
 // app.use('/orders', orderRouter);

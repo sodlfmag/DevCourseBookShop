@@ -6,7 +6,7 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 const signup = (req, res) => {
-  const { email, password } = req.body;
+  const { email, name, password } = req.body;
 
   // 암호화된 비밀번호와 salt를 DB에 같이 저장
   const salt = crypto.randomBytes(64).toString('base64');
@@ -14,8 +14,9 @@ const signup = (req, res) => {
     .pbkdf2Sync(password, salt, 10000, 64, 'sha512')
     .toString('base64');
 
-  let sql = 'INSERT INTO users (email, password, salt) VALUES (?, ?, ?)';
-  let values = [email, hashPassword, salt];
+  let sql =
+    'INSERT INTO users (email, name, password, salt) VALUES (?,?, ?, ?)';
+  let values = [email, name, hashPassword, salt];
 
   conn.query(sql, values, (err, results) => {
     if (err) {
