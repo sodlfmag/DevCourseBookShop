@@ -1,22 +1,12 @@
 const conn = require('../mariadb');
 const { StatusCodes } = require('http-status-codes');
 
-const allBooks = (req, res) => {
-  let sql = 'SELECT * FROM books';
-  conn.query(sql, (err, results) => {
-    if (err) {
-      console.log(err);
-      return res.status(StatusCodes.BAD_REQUEST).end(); // BAD REQUEST
-    }
-
-    res.status(StatusCodes.OK).json(results);
-  });
-};
-
 const bookDetail = (req, res) => {
   let { id } = req.params;
 
-  let sql = 'SELECT * FROM books WHERE id=?';
+  let sql = `SELECT * FROM books LEFT
+  JOIN category ON books.category_id = category.id
+  WHERE books.id=?;`;
   conn.query(sql, id, (err, results) => {
     if (err) {
       console.log(err);
@@ -27,12 +17,33 @@ const bookDetail = (req, res) => {
   });
 };
 
-const booksByCategory = (req, res) => {
-  let { category_id } = req.query;
+const allBooks = (req, res) => {
+  let { category_id, latest, limit, currentPage } = req.query;
 
-  let sql = 'SELECT * FROM books WHERE category_id=?';
+  // limit : page 당 도서 수
+  // currentPage : 현재 위치한 페이지 번호
+  // offset : (currentPage -1) * limit
+  let offset = limit * (currentPage - 1);
 
-  conn.query(sql, category_id, (err, results) => {
+  let sql = 'SELECT * FROM books';
+  let values = [];
+
+  if (category_id && latest) {
+    sql +=
+      ' WHERE category_id=? AND pub_date BETWEEN DATE_SUB(NOW(), INTERVAL 1 MONTH) AND NOW()';
+    values = [category_id];
+  } else if (category_id) {
+    sql += ' WHERE category_id=?';
+    values = [category_id];
+  } else if (latest) {
+    sql +=
+      ' WHERE pub_date BETWEEN DATE_SUB(NOW(), INTERVAL 1 MONTH) AND NOW()';
+  }
+
+  sql += ' LIMIT ? OFFSET ?';
+  values.push(parseInt(limit), offset);
+
+  conn.query(sql, values, (err, results) => {
     if (err) {
       console.log(err);
       return res.status(StatusCodes.BAD_REQUEST).end();
@@ -41,8 +52,8 @@ const booksByCategory = (req, res) => {
     else return res.status(StatusCodes.NOT_FOUND).end();
   });
 };
+
 module.exports = {
-  allBooks,
   bookDetail,
-  booksByCategory,
+  allBooks,
 };
