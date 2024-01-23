@@ -3,13 +3,7 @@ const mariadb = require('mysql2/promise');
 const { StatusCodes } = require('http-status-codes');
 
 const order = async (req, res) => {
-  const conn = await mariadb.createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: 'DBdufruf1!',
-    database: 'Bookshop',
-    dateString: true,
-  });
+````
 
   const { items, delivery, totalQuantity, totalPrice, userId, firstBookTitle } =
     req.body;
